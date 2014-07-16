@@ -103,16 +103,6 @@ function DinosaursApp() {
     // because this is not allwas the best answer (can be another local variable)
     var selfApp = this;
 
-    // lets call it a public method required by the interface
-    this.getGame = function () {
-        return game;
-    };
-
-    // returns current stage
-    this.getCurrentStage = function() {
-        return stage;
-    };
-
     // reset the game state
     this.resetInternals = function () {
         // shuffle the library
@@ -121,56 +111,9 @@ function DinosaursApp() {
         stage = 1;
         time = 0;
         statsTotalTimeElapsed = 0;
-        stagesLibrary = generateStages(totalStages, answersPerStage, ageRangeDificultyMultiplier);
+        stagesLibrary = generateStages(totalStages);
         // trigers an event that updates sidebar
         $(document).trigger('kids-game-status-change', new KidsEventParameterBag({gameApp: selfApp, stage: stage, totalStages: 10}));
-    };
-
-    // application descriptor, used by apiclient.js and various popups
-    this.getDescriptor = function () {
-        return {
-            code: 'panstwa',
-            name: 'Państwa',
-            description: 'Po teleportowaniu na planetę Ziemia MotoStworki zachwyciły się błękitem mórz i oceanów oraz różnorodnością kontynentów naszej planety. Z kosmonetu dowiedziały się, że kontynenty dzielą się na państwa, a każde państwo posiada swoją nazwę i flagę. Pomożesz MotoStworkom zapamiętać nazwy krajów oraz wygląd ich flag? To naprawdę trudne zadanie!',
-            iconPath: imgPath+'icon.png'
-        };
-    };
-
-    // steps that are used in tutorial popup, note that if you define onLeaveCallback you must then
-    // trigger $(document).trigger('kids-tutorial-next-step', new KidsEventParameterBag()); at the end
-    this.getTutorialSteps = function () {
-        return [
-            {
-                html: 'Przyjrzyj się pokazanemu kontynentowi i zaznaczonym na nim granicom państwa.',
-                onEnterCallback: function() { /* Animate something */
-                    // TweenLite.to('canvas', .4, {autoAlpha: 0.2});
-                },
-                onLeaveCallback: function() {
-                    // TweenLite.to('canvas', .4, {autoAlpha: 1});
-                    $(document).trigger('kids-tutorial-next-step', new KidsEventParameterBag());
-                }
-            },
-            {
-                html: 'Które to państwo? Już wiesz? Spośród propozycji, wyświetlonych po prawej stronie, wybierz jego flagę.',
-                onEnterCallback: function() { /* Animate something */
-                    // TweenLite.to('canvas', .4, {autoAlpha: 0.2});
-                },
-                onLeaveCallback: function() {
-                    // TweenLite.to('canvas', .4, {autoAlpha: 1});
-                    $(document).trigger('kids-tutorial-next-step', new KidsEventParameterBag());
-                }
-            },
-            {
-                html: 'Zapamiętanie nazw wszystkich państw i ich flag oraz udzielenie odpowiedzi w odpowiednim czasie zapewni Ci zdobycie odznaki „Galaktycznego Przewodnika: Poziom Ziemia”.',
-                onEnterCallback: function() { /* Animate something */
-                    // TweenLite.to('canvas', .4, {autoAlpha: 0.2});
-                },
-                onLeaveCallback: function() {
-                    // TweenLite.to('canvas', .4, {autoAlpha: 1});
-                    $(document).trigger('kids-tutorial-next-step', new KidsEventParameterBag());
-                }
-            },
-        ];
     };
 
     // returns current points
@@ -240,115 +183,6 @@ function DinosaursApp() {
         return !isNaN(parseFloat(n)) && isFinite(n);
     }
 
-    // self explanatory
-    function populateSpritesLibrary(type, array, extension, path) {
-        array.forEach(function (item) {
-            spritesLibrary.push({type: type, slug: item.slug, extension: extension, path: path});
-        });
-    }
-
-    // get countries by difficulty
-    function getCountriesByDifficulty(countries, difficulty) {
-        // declarations
-        var filteredCountries = [];
-        // go through every country
-        countries.forEach(function (country) {
-            // check if difficulty matches the query
-            if (country.difficulty === difficulty) {
-                filteredCountries.push(country);
-            }
-        });
-        return filteredCountries;
-    }
-
-    // get countries by continent
-    function getCountriesByContinent(countries, continent) {
-        // declarations
-        var filteredCountries = [];
-        // go through every country
-        countries.forEach(function (country) {
-            // check if difficulty matches the query
-            if (country.continent === continent) {
-                filteredCountries.push(country);
-            }
-        });
-        return filteredCountries;
-    }
-
-    // remove continent from countries array
-    function removeContinentFromCountries(countries, continent) {
-        // declarations
-        var filteredCountries = [];
-        // go through every country
-        countries.forEach(function (country) {
-            // check if difficulty matches the query
-            if (country.continent !== continent) {
-                filteredCountries.push(country);
-            }
-        });
-        return filteredCountries;
-    }
-
-    // generate stages
-    function generateStages(stages, answers, ageRange) {
-        // declarations
-        var allStages = [];
-        var countries = countriesLibrary;
-        var stageCountries = [];
-        var a, b;
-        var tempStage = {};
-        var goodAnswerIndex;
-        // ageRange = 2; // TEMP TEST
-        // check if generating for little kids
-        // and give them only europe
-        if (ageRange === 1) {
-            countries = getCountriesByContinent(countriesLibrary, 'europa');
-        }
-        // shuffle countries
-        shuffle(countries);
-        // loop through all stages
-        for (a = 1; a <= stages; a += 1) {
-            // clear temp stage object
-            tempStage = {};
-            // get countries for stage difficulty
-            if (a === 1) {
-                stageCountries = getCountriesByDifficulty(countries, 'easy');
-            } else if (a === 2) {
-                stageCountries = getCountriesByDifficulty(countries, 'medium');
-            } else {
-                stageCountries = getCountriesByDifficulty(countries, 'hard');
-            }
-            // randomize good answer index
-            goodAnswerIndex = Math.floor(Math.random() * 4);
-            // get all answers
-            tempStage.flags = [];
-            for (b = 0; b < answers; b += 1) {
-                // add answer
-                tempStage.flags.push(stageCountries[b]);
-                // add checked flag
-                tempStage.flags[b].isChecked = false;
-                // select good answer from answers
-                if (b === goodAnswerIndex) {
-                    // add answer country
-                    tempStage.country = stageCountries[b];
-                }
-            }
-            // add some flags
-            tempStage.answeredGood = undefined;
-            tempStage.answered = false;
-            // add points counter
-            tempStage.points = undefined;
-            tempStage.timeTaken = undefined;
-            // if generating for old kids remove already chosen continent
-            if (ageRange !== 1) {
-                countries = removeContinentFromCountries(countries, tempStage.country.continent);
-            }
-            // add temp stage to stages
-            allStages.push(tempStage);
-        }
-        return allStages;
-    }
-
     // Fisher-Yates shuffle algorithm
     function shuffle(array) {
         var m = array.length, t, i;
@@ -362,6 +196,43 @@ function DinosaursApp() {
             array[i] = t;
         }
         return array;
+    }
+
+    // self explanatory
+    function populateSpritesLibrary(type, array, extension, path) {
+        array.forEach(function (item) {
+            spritesLibrary.push({type: type, slug: item.slug, extension: extension, path: path});
+        });
+    }
+
+    // generate stages
+    function generateStages(stages) {
+        // declarations
+        var allStages = [];
+        var dinosaurs = dinosaursLibrary;
+        var stageCountries = [];
+        var a, b;
+        var tempStage = {};
+        var clone;
+        // shuffle dinosaurs
+        shuffle(dinosaurs);
+        // loop through all stages
+        for (a = 0; a < stages; a += 1) {
+            // clear temp stage object
+            tempStage = {};
+            // use clone to avoid duplicate changes to objects
+            console.log(dinosaurs[a]);
+            clone = JSON.parse(JSON.stringify(dinosaurs[a]));
+            tempStage.dinosaur = clone;
+            // add some flags
+            tempStage.finished = false;
+            // add points counter
+            tempStage.points = undefined;
+            tempStage.timeTaken = undefined;
+            // add temp stage to stages
+            allStages.push(tempStage);
+        }
+        return allStages;
     }
 
     // generete given flag for answering
@@ -387,6 +258,8 @@ function DinosaursApp() {
         flag.input.pixelPerfect = true;
         flag.input.useHandCursor = true;
         // add event on tap/click
+        // onInputDown is triggered on tap start
+        // onInputUp is triggered on tap end
         flag.events.onInputDown.add(function () {
             // check flag
             stagesLibrary[stage-1].flags[flagIndex].isChecked = true;
