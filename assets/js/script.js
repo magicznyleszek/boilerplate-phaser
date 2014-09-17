@@ -6,18 +6,7 @@ function projectInterface() {
 
     this.run = run;
     function run() {
-        var game = new DinosaursApp();
-    }
-
-
-    // --------------------------------------------------
-    // this does something because something
-    // --------------------------------------------------
-
-    function doSomething() {
-        if(true === true) {
-            console.log("truth");
-        }
+        app.run();
     }
 }
 
